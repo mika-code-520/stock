@@ -1,0 +1,192 @@
+// Prisma schema — App de Control de Stock en Consignación
+// Ver /Users/ganesha/.claude/plans/noble-knitting-pike.md para el contexto de negocio completo.
+// Alcance: solo control de stock y cálculo de deuda a proveedores. No se registran pagos.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  ADMIN
+  VENDEDOR
+}
+
+enum MovementType {
+  INGRESO_INICIAL
+  REPOSICION
+  PEDIDO_REPOSICION
+  VENTA
+  DEVOLUCION
+  CAMBIO_ENTRADA
+  CAMBIO_SALIDA
+  RETIRO
+}
+
+enum MovementStatus {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+// ============================================================
+// USERS & AUTH
+// ============================================================
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(VENDEDOR)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  movementsCreated  Movement[] @relation("MovementCreatedBy")
+  movementsReviewed Movement[] @relation("MovementReviewedBy")
+
+  @@map("users")
+}
+
+// ============================================================
+// SUPPLIERS (Proveedores / dueños de la mercadería)
+// ============================================================
+
+model Supplier {
+  id           String   @id @default(cuid())
+  name         String
+  contactPhone String?
+  contactEmail String?
+  notes        String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  products  Product[]
+  movements Movement[]
+
+  @@map("suppliers")
+}
+
+// ============================================================
+// CATEGORIES
+// ============================================================
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  products Product[]
+
+  @@map("categories")
+}
+
+// ============================================================
+// PRODUCTS
+// ============================================================
+
+model Product {
+  id    String  @id @default(cuid())
+  sku   String? @unique
+  name  String
+  size  String
+  color String
+
+  categoryId String
+  supplierId String
+
+  consignmentPrice   Decimal  @db.Decimal(10, 2)
+  suggestedSalePrice Decimal? @db.Decimal(10, 2)
+
+  // Cache desnormalizado del stock actual. Fuente de verdad real es la suma
+  // de Movement con status = APROBADO; este campo solo se actualiza dentro
+  // de la misma transacción que aprueba un movimiento (ver lib/services/movements.ts).
+  stockCache Int @default(0)
+
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category  Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  supplier  Supplier   @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  movements Movement[]
+
+  @@unique([name, size, color, supplierId], name: "uniq_variant_per_supplier")
+  @@index([supplierId])
+  @@index([categoryId])
+  @@map("products")
+}
+
+// ============================================================
+// MOVEMENTS (ledger inmutable — nunca se actualiza, solo se crea
+// y luego se revisa vía status/reviewedBy/reviewedAt/rejectionReason)
+// ============================================================
+
+model Movement {
+  id     String         @id @default(cuid())
+  type   MovementType
+  status MovementStatus @default(PENDIENTE)
+
+  productId String
+  // Copiado desde product.supplierId al crear el movimiento, para que la
+  // deuda histórica de un proveedor nunca cambie si el producto se
+  // reasignara de dueño más adelante.
+  supplierId String
+
+  quantity Int
+
+  // Monto que afecta la deuda del proveedor (qty * consignmentPrice), con
+  // signo conceptual según `type` (VENTA/CAMBIO_SALIDA suman deuda,
+  // DEVOLUCION/CAMBIO_ENTRADA restan). Null cuando el tipo no afecta deuda
+  // (INGRESO_INICIAL, REPOSICION, PEDIDO_REPOSICION, RETIRO).
+  consignmentAmount Decimal? @db.Decimal(10, 2)
+
+  // Precio real cobrado al cliente final; solo informativo, nunca afecta deuda.
+  saleAmount Decimal? @db.Decimal(10, 2)
+
+  // Vincula los dos movimientos (CAMBIO_ENTRADA + CAMBIO_SALIDA) de un mismo
+  // CAMBIO. Siempre se aprueban/rechazan juntos.
+  exchangeGroupId String?
+
+  // Para DEVOLUCION / CAMBIO_ENTRADA: si la unidad que vuelve ya había sido
+  // vendida (revierte deuda) o solo estaba en stock (reingreso sin efecto en deuda).
+  wasSold Boolean?
+
+  // Trazabilidad opcional hacia la venta original que esta devolución revierte.
+  reversalOfMovementId String?
+  reversalOfMovement   Movement?  @relation("MovementReversal", fields: [reversalOfMovementId], references: [id])
+  reversedBy           Movement[] @relation("MovementReversal")
+
+  notes String?
+
+  createdAt   DateTime @default(now())
+  createdById String
+  createdBy   User     @relation("MovementCreatedBy", fields: [createdById], references: [id])
+
+  reviewedAt      DateTime?
+  reviewedById    String?
+  reviewedBy      User?     @relation("MovementReviewedBy", fields: [reviewedById], references: [id])
+  rejectionReason String?
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+
+  @@index([productId])
+  @@index([supplierId])
+  @@index([exchangeGroupId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([createdById])
+  @@map("movements")
+}
