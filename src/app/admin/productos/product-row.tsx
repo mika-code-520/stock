@@ -15,6 +15,7 @@ type Product = {
   stockCache: number;
   consignmentPrice: number;
   suggestedSalePrice: number | null;
+  returnable: boolean;
   supplier: Supplier;
   category: Category;
 };
@@ -49,6 +50,17 @@ export function ProductRow({
             ? `$${Number(product.suggestedSalePrice).toLocaleString("es-AR")}`
             : "-"}
         </td>
+        <td className="px-4 py-2 text-center">
+          {product.returnable ? (
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+              Sí
+            </span>
+          ) : (
+            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-500">
+              No
+            </span>
+          )}
+        </td>
         <td className="px-4 py-2 text-right">
           <div className="flex justify-end gap-2">
             <button
@@ -79,7 +91,7 @@ export function ProductRow({
 
   return (
     <tr className="border-t border-neutral-100 bg-neutral-50">
-      <td colSpan={7} className="px-4 py-3">
+      <td colSpan={8} className="px-4 py-3">
         <form
           action={async (formData) => {
             await updateProductAction(formData);
@@ -123,6 +135,19 @@ export function ProductRow({
             step="0.01"
             defaultValue={product.suggestedSalePrice ? String(product.suggestedSalePrice) : ""}
           />
+
+          <div className="flex items-center gap-2 sm:col-span-3">
+            <input
+              id={`edit-returnable-${product.id}`}
+              name="returnable"
+              type="checkbox"
+              defaultChecked={product.returnable}
+              className="h-4 w-4 rounded border-neutral-300"
+            />
+            <label htmlFor={`edit-returnable-${product.id}`} className="text-sm font-medium text-neutral-700">
+              El vendedor puede devolver este producto
+            </label>
+          </div>
 
           <div className="flex items-end gap-2 sm:col-span-3">
             <button

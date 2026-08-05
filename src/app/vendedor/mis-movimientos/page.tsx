@@ -1,20 +1,12 @@
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/require-role";
-
-const TYPE_LABEL: Record<string, string> = {
-  VENTA: "Venta",
-  DEVOLUCION: "Devolución",
-  CAMBIO_ENTRADA: "Cambio (entra)",
-  CAMBIO_SALIDA: "Cambio (sale)",
-  PEDIDO_REPOSICION: "Pedido de reposición",
-  REPOSICION: "Reposición",
-};
-
-const STATUS_STYLE: Record<string, string> = {
-  PENDIENTE: "bg-amber-100 text-amber-800",
-  APROBADO: "bg-emerald-100 text-emerald-800",
-  RECHAZADO: "bg-red-100 text-red-800",
-};
+import {
+  MOVEMENT_TYPE_LABEL,
+  MOVEMENT_STATUS_STYLE,
+  MOVEMENT_STATUS_LABEL,
+  PAYMENT_STATUS_STYLE,
+  PAYMENT_STATUS_LABEL,
+} from "@/lib/movement-labels";
 
 export default async function MisMovimientosPage() {
   const user = await requireSession();
@@ -25,6 +17,8 @@ export default async function MisMovimientosPage() {
     orderBy: { createdAt: "desc" },
     take: 100,
   });
+
+  const hasRejections = movimientos.some((m) => m.status === "RECHAZADO");
 
   return (
     <div className="flex flex-col gap-6">
@@ -39,6 +33,7 @@ export default async function MisMovimientosPage() {
               <th className="px-4 py-2 font-medium">Producto</th>
               <th className="px-4 py-2 font-medium text-right">Cantidad</th>
               <th className="px-4 py-2 font-medium">Estado</th>
+              {hasRejections && <th className="px-4 py-2 font-medium">Motivo</th>}
             </tr>
           </thead>
           <tbody>
@@ -47,18 +42,31 @@ export default async function MisMovimientosPage() {
                 <td className="px-4 py-2 text-neutral-600">
                   {m.createdAt.toLocaleDateString("es-AR")}
                 </td>
-                <td className="px-4 py-2 text-neutral-800">{TYPE_LABEL[m.type] ?? m.type}</td>
+                <td className="px-4 py-2 text-neutral-800">{MOVEMENT_TYPE_LABEL[m.type] ?? m.type}</td>
                 <td className="px-4 py-2 text-neutral-600">
                   {m.product.name} {m.product.size}/{m.product.color}
                 </td>
                 <td className="px-4 py-2 text-right text-neutral-800">{m.quantity}</td>
                 <td className="px-4 py-2">
-                  <span
-                    className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[m.status]}`}
-                  >
-                    {m.status}
-                  </span>
+                  {m.status === "APROBADO" && m.paymentStatus !== "NO_APLICA" ? (
+                    <span
+                      className={`rounded px-2 py-0.5 text-xs font-medium ${PAYMENT_STATUS_STYLE[m.paymentStatus]}`}
+                    >
+                      {PAYMENT_STATUS_LABEL[m.paymentStatus]}
+                    </span>
+                  ) : (
+                    <span
+                      className={`rounded px-2 py-0.5 text-xs font-medium ${MOVEMENT_STATUS_STYLE[m.status]}`}
+                    >
+                      {MOVEMENT_STATUS_LABEL[m.status] ?? m.status}
+                    </span>
+                  )}
                 </td>
+                {hasRejections && (
+                  <td className="px-4 py-2 text-neutral-500">
+                    {m.status === "RECHAZADO" ? m.rejectionReason || "Sin motivo especificado" : ""}
+                  </td>
+                )}
               </tr>
             ))}
             {movimientos.length === 0 && (

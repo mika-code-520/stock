@@ -1,13 +1,7 @@
 import { prisma } from "@/lib/db";
 import { aprobarMovimientoAction, rechazarMovimientoAction } from "@/actions/movements.actions";
-
-const TYPE_LABEL: Record<string, string> = {
-  VENTA: "Venta",
-  DEVOLUCION: "Devolución",
-  CAMBIO_ENTRADA: "Cambio (entra)",
-  CAMBIO_SALIDA: "Cambio (sale)",
-  PEDIDO_REPOSICION: "Pedido de reposición",
-};
+import { MOVEMENT_TYPE_LABEL } from "@/lib/movement-labels";
+import { RechazarButton } from "./rechazar-button";
 
 export default async function AprobacionesPage() {
   const pendientes = await prisma.movement.findMany({
@@ -34,12 +28,18 @@ export default async function AprobacionesPage() {
           >
             <div>
               <p className="text-sm font-medium text-neutral-900">
-                {TYPE_LABEL[m.type] ?? m.type} · {m.product.name} {m.product.size}/{m.product.color}
+                {MOVEMENT_TYPE_LABEL[m.type] ?? m.type} · {m.product.name} {m.product.size}/{m.product.color}
               </p>
               <p className="text-sm text-neutral-600">
                 Proveedor: {m.product.supplier.name} · Cantidad: {m.quantity}
                 {m.saleAmount ? ` · Venta: $${Number(m.saleAmount).toLocaleString("es-AR")}` : ""}
+                {m.type === "DEVOLUCION"
+                  ? m.wasSold
+                    ? " · Ya vendido (resta deuda al proveedor)"
+                    : " · No vendido (solo reingresa stock)"
+                  : ""}
               </p>
+              {m.notes && <p className="text-xs text-neutral-500">Nota: {m.notes}</p>}
               <p className="text-xs text-neutral-500">
                 Cargado por {m.createdBy.name} el {m.createdAt.toLocaleString("es-AR")}
               </p>
@@ -59,17 +59,13 @@ export default async function AprobacionesPage() {
                 </button>
               </form>
               <form
-                action={async () => {
+                action={async (formData: FormData) => {
                   "use server";
-                  await rechazarMovimientoAction(m.id);
+                  const reason = String(formData.get("reason") ?? "").trim();
+                  await rechazarMovimientoAction(m.id, reason || undefined);
                 }}
               >
-                <button
-                  type="submit"
-                  className="rounded border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-                >
-                  Rechazar
-                </button>
+                <RechazarButton />
               </form>
             </div>
           </div>

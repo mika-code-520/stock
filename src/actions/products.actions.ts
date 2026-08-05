@@ -18,6 +18,7 @@ export async function createProductAction(formData: FormData) {
     consignmentPrice: formData.get("consignmentPrice"),
     suggestedSalePrice: formData.get("suggestedSalePrice"),
     initialStock: formData.get("initialStock"),
+    returnable: formData.get("returnable"),
   });
 
   if (!parsed.success) {
@@ -35,6 +36,7 @@ export async function createProductAction(formData: FormData) {
       supplierId: data.supplierId,
       consignmentPrice: data.consignmentPrice,
       suggestedSalePrice: data.suggestedSalePrice,
+      returnable: data.returnable,
     },
   });
 
@@ -61,6 +63,7 @@ export async function updateProductAction(formData: FormData) {
     supplierId: formData.get("supplierId"),
     consignmentPrice: formData.get("consignmentPrice"),
     suggestedSalePrice: formData.get("suggestedSalePrice"),
+    returnable: formData.get("returnable"),
   });
 
   if (!parsed.success) {
@@ -79,6 +82,7 @@ export async function updateProductAction(formData: FormData) {
       supplierId: data.supplierId,
       consignmentPrice: data.consignmentPrice,
       suggestedSalePrice: data.suggestedSalePrice,
+      returnable: data.returnable,
     },
   });
 

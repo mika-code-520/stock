@@ -37,6 +37,15 @@ enum MovementStatus {
   RECHAZADO
 }
 
+// Estado de pago al proveedor de la deuda generada por este movimiento.
+// Solo aplica a movimientos con consignmentAmount no nulo; el resto queda
+// en NO_APLICA.
+enum PaymentStatus {
+  NO_APLICA
+  PENDIENTE_PAGO
+  PAGADO
+}
+
 // ============================================================
 // USERS & AUTH
 // ============================================================
@@ -114,6 +123,10 @@ model Product {
   consignmentPrice   Decimal  @db.Decimal(10, 2)
   suggestedSalePrice Decimal? @db.Decimal(10, 2)
 
+  // Lo define el proveedor al crear el producto: si false, el vendedor no
+  // puede generar movimientos de tipo DEVOLUCION para esta variante.
+  returnable Boolean @default(true)
+
   // Cache desnormalizado del stock actual. Fuente de verdad real es la suma
   // de Movement con status = APROBADO; este campo solo se actualiza dentro
   // de la misma transacción que aprueba un movimiento (ver lib/services/movements.ts).
@@ -142,6 +155,11 @@ model Movement {
   id     String         @id @default(cuid())
   type   MovementType
   status MovementStatus @default(PENDIENTE)
+
+  // Estado de pago al proveedor. Se fija a PENDIENTE_PAGO cuando el
+  // movimiento se aprueba y tiene consignmentAmount; el admin lo pasa a
+  // PAGADO al pagarle al proveedor. Ver PaymentStatus.
+  paymentStatus PaymentStatus @default(NO_APLICA)
 
   productId String
   // Copiado desde product.supplierId al crear el movimiento, para que la
@@ -194,5 +212,6 @@ model Movement {
   @@index([status])
   @@index([createdAt])
   @@index([createdById])
+  @@index([paymentStatus])
   @@map("movements")
 }

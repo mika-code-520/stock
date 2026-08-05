@@ -46,6 +46,10 @@ export async function crearMovimientoPendiente(params: {
     where: { id: params.productId },
   });
 
+  if (params.type === "DEVOLUCION" && !product.returnable) {
+    throw new Error("Este producto no admite devoluciones (definido por el proveedor).");
+  }
+
   const consignmentAmount =
     params.type === "VENTA" || (params.type === "DEVOLUCION" && params.wasSold)
       ? Number(product.consignmentPrice) * params.quantity
@@ -134,8 +138,38 @@ export async function aprobarMovimiento(movementId: string, adminId: string) {
 
     return tx.movement.update({
       where: { id: movement.id },
-      data: { status: "APROBADO", reviewedById: adminId, reviewedAt: new Date() },
+      data: {
+        status: "APROBADO",
+        reviewedById: adminId,
+        reviewedAt: new Date(),
+        paymentStatus: movement.consignmentAmount != null ? "PENDIENTE_PAGO" : "NO_APLICA",
+      },
     });
+  });
+}
+
+export async function marcarPagoProveedor(movementId: string) {
+  const movement = await prisma.movement.findUniqueOrThrow({ where: { id: movementId } });
+
+  if (movement.status !== "APROBADO" || movement.consignmentAmount == null) {
+    throw new Error("Este movimiento no genera deuda con el proveedor.");
+  }
+
+  return prisma.movement.update({
+    where: { id: movementId },
+    data: { paymentStatus: "PAGADO" },
+  });
+}
+
+export async function marcarPagoProveedorMasivo(supplierId: string) {
+  return prisma.movement.updateMany({
+    where: {
+      supplierId,
+      status: "APROBADO",
+      paymentStatus: "PENDIENTE_PAGO",
+      consignmentAmount: { not: null },
+    },
+    data: { paymentStatus: "PAGADO" },
   });
 }
 

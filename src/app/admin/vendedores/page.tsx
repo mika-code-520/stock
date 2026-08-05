@@ -1,17 +1,17 @@
-import { getDeudaTodosLosProveedores } from "@/lib/services/debt";
-import { marcarPagoProveedorMasivoAction } from "@/actions/movements.actions";
+import Link from "next/link";
+import { getDeudaTodosLosVendedores } from "@/lib/services/debt";
 
-export default async function DeudaPage() {
-  const deudas = await getDeudaTodosLosProveedores();
+export default async function VendedoresPage() {
+  const deudas = await getDeudaTodosLosVendedores();
   const totalDeuda = deudas.reduce((acc, d) => acc + d.deuda, 0);
 
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-semibold text-neutral-900">Deuda por proveedor</h1>
+        <h1 className="text-2xl font-semibold text-neutral-900">Vendedores</h1>
         <p className="mt-1 text-sm text-neutral-500">
-          Lo que el local debe a cada proveedor por mercadería en consignación ya vendida
-          (movimientos aprobados). Los proveedores marcados como stock propio no generan deuda.
+          Lo que cada vendedor te debe por lo vendido (movimientos aprobados, al precio de
+          consignación). El vendedor se queda con la diferencia hasta el precio de venta real.
         </p>
       </div>
 
@@ -19,15 +19,15 @@ export default async function DeudaPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 bg-neutral-50/80 text-left text-xs uppercase tracking-wide text-neutral-500">
-              <th className="px-5 py-3 font-medium">Proveedor</th>
-              <th className="px-5 py-3 text-right font-medium">Deuda pendiente</th>
-              <th className="px-5 py-3 font-medium"></th>
+              <th className="px-5 py-3 font-medium">Vendedor</th>
+              <th className="px-5 py-3 text-right font-medium">Te debe</th>
+              <th className="px-5 py-3 text-right font-medium">Historial</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100">
-            {deudas.map(({ supplier, deuda }) => (
-              <tr key={supplier.id} className="transition-colors hover:bg-neutral-50">
-                <td className="px-5 py-3 font-medium text-neutral-800">{supplier.name}</td>
+            {deudas.map(({ vendedor, deuda }) => (
+              <tr key={vendedor.id} className="transition-colors hover:bg-neutral-50">
+                <td className="px-5 py-3 font-medium text-neutral-800">{vendedor.name}</td>
                 <td
                   className={`px-5 py-3 text-right font-semibold tabular-nums ${
                     deuda > 0 ? "text-neutral-900" : "text-neutral-400"
@@ -36,28 +36,19 @@ export default async function DeudaPage() {
                   ${deuda.toLocaleString("es-AR")}
                 </td>
                 <td className="px-5 py-3 text-right">
-                  {deuda > 0 && (
-                    <form
-                      action={async () => {
-                        "use server";
-                        await marcarPagoProveedorMasivoAction(supplier.id);
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        className="rounded border border-emerald-300 bg-white px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
-                      >
-                        Marcar todo pagado
-                      </button>
-                    </form>
-                  )}
+                  <Link
+                    href={`/admin/vendedores/${vendedor.id}`}
+                    className="text-sm font-medium text-neutral-500 hover:text-neutral-900"
+                  >
+                    Ver detalle
+                  </Link>
                 </td>
               </tr>
             ))}
             {deudas.length === 0 && (
               <tr>
                 <td colSpan={3} className="px-5 py-10 text-center text-neutral-400">
-                  No hay proveedores en consignación cargados todavía.
+                  No hay vendedores cargados todavía.
                 </td>
               </tr>
             )}
@@ -69,6 +60,7 @@ export default async function DeudaPage() {
                 <td className="px-5 py-3 text-right font-semibold tabular-nums text-neutral-900">
                   ${totalDeuda.toLocaleString("es-AR")}
                 </td>
+                <td />
               </tr>
             </tfoot>
           )}

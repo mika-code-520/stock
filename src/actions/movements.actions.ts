@@ -6,6 +6,8 @@ import {
   crearMovimientoPendiente,
   aprobarMovimiento,
   rechazarMovimiento,
+  marcarPagoProveedor,
+  marcarPagoProveedorMasivo,
 } from "@/lib/services/movements";
 
 export async function registrarVentaAction(formData: FormData) {
@@ -25,6 +27,32 @@ export async function registrarVentaAction(formData: FormData) {
     productId,
     quantity,
     saleAmount,
+    createdById: user.id,
+  });
+
+  revalidatePath("/vendedor/mis-movimientos");
+  revalidatePath("/admin/aprobaciones");
+}
+
+export async function registrarDevolucionAction(formData: FormData) {
+  const user = await requireRole(["ADMIN", "VENDEDOR"]);
+
+  const productId = String(formData.get("productId") ?? "");
+  const quantity = Number(formData.get("quantity"));
+  const wasSold = formData.get("wasSold") === "on";
+  const notesRaw = formData.get("notes");
+  const notes = notesRaw ? String(notesRaw) : undefined;
+
+  if (!productId || !Number.isFinite(quantity) || quantity <= 0) {
+    throw new Error("Datos de devolución inválidos.");
+  }
+
+  await crearMovimientoPendiente({
+    type: "DEVOLUCION",
+    productId,
+    quantity,
+    wasSold,
+    notes,
     createdById: user.id,
   });
 
@@ -64,4 +92,20 @@ export async function rechazarMovimientoAction(movementId: string, reason?: stri
   const user = await requireRole(["ADMIN"]);
   await rechazarMovimiento(movementId, user.id, reason);
   revalidatePath("/admin/aprobaciones");
+}
+
+export async function marcarPagoProveedorAction(movementId: string) {
+  await requireRole(["ADMIN"]);
+  await marcarPagoProveedor(movementId);
+  revalidatePath("/admin/deuda");
+  revalidatePath("/admin/vendedores");
+  revalidatePath("/vendedor/mis-movimientos");
+}
+
+export async function marcarPagoProveedorMasivoAction(supplierId: string) {
+  await requireRole(["ADMIN"]);
+  await marcarPagoProveedorMasivo(supplierId);
+  revalidatePath("/admin/deuda");
+  revalidatePath("/admin/vendedores");
+  revalidatePath("/vendedor/mis-movimientos");
 }

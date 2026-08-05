@@ -45,6 +45,19 @@ export default async function ProductosPage() {
         <Field label="Precio sugerido de venta" name="suggestedSalePrice" type="number" step="0.01" />
         <Field label="Stock inicial" name="initialStock" type="number" defaultValue="0" />
 
+        <div className="flex items-center gap-2 sm:col-span-3">
+          <input
+            id="returnable"
+            name="returnable"
+            type="checkbox"
+            defaultChecked
+            className="h-4 w-4 rounded border-neutral-300"
+          />
+          <label htmlFor="returnable" className="text-sm font-medium text-neutral-700">
+            El vendedor puede devolver este producto
+          </label>
+        </div>
+
         <div className="sm:col-span-3">
           <button
             type="submit"
@@ -65,6 +78,7 @@ export default async function ProductosPage() {
               <th className="px-4 py-2 font-medium text-right">Stock</th>
               <th className="px-4 py-2 font-medium text-right">Precio consig.</th>
               <th className="px-4 py-2 font-medium text-right">Precio sugerido</th>
+              <th className="px-4 py-2 font-medium text-center">Devolvible</th>
               <th className="px-4 py-2 font-medium text-right">Acciones</th>
             </tr>
           </thead>
@@ -83,7 +97,7 @@ export default async function ProductosPage() {
             ))}
             {products.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={8} className="px-4 py-6 text-center text-neutral-400">
                   Todavía no hay productos.
                 </td>
               </tr>

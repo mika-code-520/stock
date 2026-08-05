@@ -5,6 +5,7 @@ import { logoutAction } from "@/actions/auth.actions";
 const NAV = [
   { href: "/vendedor", label: "Mostrador" },
   { href: "/vendedor/venta", label: "Vender" },
+  { href: "/vendedor/devolucion", label: "Devolución" },
   { href: "/vendedor/pedido-reposicion", label: "Pedir stock" },
   { href: "/vendedor/mis-movimientos", label: "Mis movimientos" },
 ];

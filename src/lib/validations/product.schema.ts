@@ -5,6 +5,10 @@ const optionalText = z
   .optional()
   .or(z.literal("").transform(() => undefined));
 
+const checkboxBoolean = z
+  .union([z.literal("on"), z.literal(""), z.undefined()])
+  .transform((v) => v === "on");
+
 export const createProductSchema = z.object({
   name: z.string().min(1, "Requerido"),
   size: optionalText,
@@ -14,6 +18,7 @@ export const createProductSchema = z.object({
   consignmentPrice: z.coerce.number().positive("Debe ser mayor a 0"),
   suggestedSalePrice: z.coerce.number().positive().optional().or(z.literal("").transform(() => undefined)),
   initialStock: z.coerce.number().int().min(0).default(0),
+  returnable: checkboxBoolean,
 });
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;
@@ -27,6 +32,7 @@ export const updateProductSchema = z.object({
   supplierId: z.string().min(1, "Requerido"),
   consignmentPrice: z.coerce.number().positive("Debe ser mayor a 0"),
   suggestedSalePrice: z.coerce.number().positive().optional().or(z.literal("").transform(() => undefined)),
+  returnable: checkboxBoolean,
 });
 
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
