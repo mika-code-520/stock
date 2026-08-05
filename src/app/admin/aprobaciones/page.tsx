@@ -21,7 +21,7 @@ export default async function AprobacionesPage() {
       <h1 className="text-2xl font-semibold text-neutral-900">Pendientes de aprobación</h1>
 
       {pendientes.length === 0 && (
-        <p className="rounded-lg border border-neutral-200 bg-white p-6 text-center text-neutral-400">
+        <p className="rounded-lg border border-neutral-200 bg-white shadow-sm p-6 text-center text-neutral-400">
           No hay movimientos pendientes.
         </p>
       )}

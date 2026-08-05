@@ -17,7 +17,7 @@ export default async function VentaPage() {
 
       <form
         action={registrarVentaAction}
-        className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-white p-4"
+        className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-white shadow-sm p-4"
       >
         <div className="flex flex-col gap-1">
           <label htmlFor="productId" className="text-sm font-medium text-neutral-700">

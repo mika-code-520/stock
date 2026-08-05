@@ -17,7 +17,7 @@ function Card({ href, title }: { href: string; title: string }) {
   return (
     <Link
       href={href}
-      className="rounded-lg border border-neutral-200 bg-white p-6 text-center font-medium text-neutral-800 hover:border-neutral-400"
+      className="rounded-lg border border-neutral-200 bg-white shadow-sm p-6 text-center font-medium text-neutral-800 hover:border-neutral-400"
     >
       {title}
     </Link>

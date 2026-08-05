@@ -30,7 +30,7 @@ export default async function MisMovimientosPage() {
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold text-neutral-900">Mis movimientos</h1>
 
-      <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
+      <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-left text-neutral-500">
             <tr>

@@ -18,7 +18,7 @@ export default async function ProductosPage() {
 
       <form
         action={createProductAction}
-        className="grid grid-cols-1 gap-3 rounded-lg border border-neutral-200 bg-white p-4 sm:grid-cols-3"
+        className="grid grid-cols-1 gap-3 rounded-lg border border-neutral-200 bg-white shadow-sm p-4 sm:grid-cols-3"
       >
         <Field label="Nombre" name="name" required />
         <Field label="Talle" name="size" required />
@@ -54,7 +54,7 @@ export default async function ProductosPage() {
         </div>
       </form>
 
-      <div className="overflow-x-auto rounded-lg border border-neutral-200">
+      <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-left text-neutral-500">
             <tr>

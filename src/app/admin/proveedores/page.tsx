@@ -13,7 +13,7 @@ export default async function ProveedoresPage() {
 
       <form
         action={createSupplierAction}
-        className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 sm:flex-row sm:items-end"
+        className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white shadow-sm p-4 sm:flex-row sm:items-end"
       >
         <Field label="Nombre" name="name" required />
         <Field label="Teléfono" name="contactPhone" />
