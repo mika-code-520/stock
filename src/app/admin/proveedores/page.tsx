@@ -18,6 +18,10 @@ export default async function ProveedoresPage() {
         <Field label="Nombre" name="name" required />
         <Field label="Teléfono" name="contactPhone" />
         <Field label="Email" name="contactEmail" type="email" />
+        <label className="flex items-center gap-2 pb-2 text-sm text-neutral-700">
+          <input type="checkbox" name="isOwnStock" className="h-4 w-4 rounded border-neutral-300" />
+          Stock propio (no genera deuda)
+        </label>
         <button
           type="submit"
           className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
@@ -33,6 +37,7 @@ export default async function ProveedoresPage() {
               <th className="px-4 py-2 font-medium">Nombre</th>
               <th className="px-4 py-2 font-medium">Teléfono</th>
               <th className="px-4 py-2 font-medium">Email</th>
+              <th className="px-4 py-2 font-medium">Tipo</th>
             </tr>
           </thead>
           <tbody>
@@ -41,11 +46,22 @@ export default async function ProveedoresPage() {
                 <td className="px-4 py-2 text-neutral-800">{s.name}</td>
                 <td className="px-4 py-2 text-neutral-600">{s.contactPhone ?? "-"}</td>
                 <td className="px-4 py-2 text-neutral-600">{s.contactEmail ?? "-"}</td>
+                <td className="px-4 py-2 text-neutral-600">
+                  {s.isOwnStock ? (
+                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
+                      Stock propio
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                      Consignación
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
             {suppliers.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={4} className="px-4 py-6 text-center text-neutral-400">
                   Todavía no hay proveedores.
                 </td>
               </tr>

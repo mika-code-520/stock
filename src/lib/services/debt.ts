@@ -19,7 +19,9 @@ export async function getDeudaPorProveedor(supplierId: string) {
 }
 
 export async function getDeudaTodosLosProveedores() {
-  const suppliers = await prisma.supplier.findMany({ where: { active: true } });
+  const suppliers = await prisma.supplier.findMany({
+    where: { active: true, isOwnStock: false },
+  });
   const deudas = await Promise.all(
     suppliers.map(async (s) => ({
       supplier: s,

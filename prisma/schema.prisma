@@ -68,6 +68,12 @@ model Supplier {
   contactEmail String?
   notes        String?
   active       Boolean  @default(true)
+
+  // Marca al "proveedor" que en realidad es el local/dueño operando con su
+  // propia mercadería (no en consignación de un tercero). Sus movimientos no
+  // generan deuda y se excluye de la vista de deuda por proveedor.
+  isOwnStock Boolean @default(false)
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -99,8 +105,8 @@ model Product {
   id    String  @id @default(cuid())
   sku   String? @unique
   name  String
-  size  String
-  color String
+  size  String?
+  color String?
 
   categoryId String
   supplierId String

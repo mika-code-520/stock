@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { createProductAction } from "@/actions/products.actions";
+import { ProductRow } from "./product-row";
 
 export default async function ProductosPage() {
   const [products, suppliers, categories] = await Promise.all([
@@ -21,8 +22,8 @@ export default async function ProductosPage() {
         className="grid grid-cols-1 gap-3 rounded-lg border border-neutral-200 bg-white shadow-sm p-4 sm:grid-cols-3"
       >
         <Field label="Nombre" name="name" required />
-        <Field label="Talle" name="size" required />
-        <Field label="Color" name="color" required />
+        <Field label="Talle" name="size" />
+        <Field label="Color" name="color" />
 
         <SelectField label="Categoría" name="categoryId" required>
           {categories.map((c) => (
@@ -64,30 +65,25 @@ export default async function ProductosPage() {
               <th className="px-4 py-2 font-medium text-right">Stock</th>
               <th className="px-4 py-2 font-medium text-right">Precio consig.</th>
               <th className="px-4 py-2 font-medium text-right">Precio sugerido</th>
+              <th className="px-4 py-2 font-medium text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {products.map((p) => (
-              <tr key={p.id} className="border-t border-neutral-100">
-                <td className="px-4 py-2 text-neutral-800">
-                  {p.name} · {p.size} · {p.color}
-                </td>
-                <td className="px-4 py-2 text-neutral-600">{p.supplier.name}</td>
-                <td className="px-4 py-2 text-neutral-600">{p.category.name}</td>
-                <td className="px-4 py-2 text-right text-neutral-800">{p.stockCache}</td>
-                <td className="px-4 py-2 text-right text-neutral-600">
-                  ${Number(p.consignmentPrice).toLocaleString("es-AR")}
-                </td>
-                <td className="px-4 py-2 text-right text-neutral-600">
-                  {p.suggestedSalePrice
-                    ? `$${Number(p.suggestedSalePrice).toLocaleString("es-AR")}`
-                    : "-"}
-                </td>
-              </tr>
+              <ProductRow
+                key={p.id}
+                product={{
+                  ...p,
+                  consignmentPrice: Number(p.consignmentPrice),
+                  suggestedSalePrice: p.suggestedSalePrice ? Number(p.suggestedSalePrice) : null,
+                }}
+                categories={categories}
+                suppliers={suppliers}
+              />
             ))}
             {products.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-neutral-400">
+                <td colSpan={7} className="px-4 py-6 text-center text-neutral-400">
                   Todavía no hay productos.
                 </td>
               </tr>

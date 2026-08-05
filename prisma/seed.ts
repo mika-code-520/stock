@@ -50,18 +50,19 @@ async function main() {
     });
   }
 
-  // El "proveedor" es el dueño de la mercadería (el administrador, Dani) que
-  // le entrega la ropa en consignación al vendedor a un precio, y le sugiere
-  // un precio de venta al público.
+  // Dani es la administradora del local y dueña de esta mercadería (no la
+  // recibe en consignación de un tercero), por eso se marca isOwnStock: sus
+  // movimientos nunca generan deuda.
   const dani = await prisma.supplier.upsert({
     where: { id: "seed-supplier-dani" },
-    update: {},
+    update: { isOwnStock: true },
     create: {
       id: "seed-supplier-dani",
       name: "Dani",
       contactPhone: "11-4444-5555",
       contactEmail: "admin@stock.local",
-      notes: "Dueño de la mercadería. Entrega en consignación al vendedor.",
+      notes: "Administradora del local. Mercadería propia, no en consignación.",
+      isOwnStock: true,
     },
   });
 
